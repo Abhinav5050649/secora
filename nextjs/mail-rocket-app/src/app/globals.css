@@ -1,0 +1,54 @@
+@import "tailwindcss";
+@import "../styles/theme.css";
+@import "../styles/typography.css";
+
+@plugin "tailwindcss-react-aria-components";
+@plugin "tailwindcss-animate";
+
+@custom-variant dark (&:where(.dark-mode, .dark-mode *));
+@custom-variant label (& [data-label]);
+@custom-variant focus-input-within (&:has(input:focus));
+
+@utility scrollbar-hide {
+    &::-webkit-scrollbar {
+        display: none;
+        -webkit-appearance: none;
+    }
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+
+@utility transition-inherit-all {
+    transition-property: inherit;
+    transition-duration: inherit;
+    transition-timing-function: inherit;
+}
+
+html,
+body {
+    font-family: var(--font-body);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    -webkit-font-variant-ligatures: contextual;
+    font-variant-ligatures: contextual;
+    -webkit-font-kerning: normal;
+    font-kerning: normal;
+    margin: 0;
+}
+
+details summary::-webkit-details-marker {
+    display: none;
+}
+
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+input[type="number"] {
+    -moz-appearance: textfield;
+}
+
+input[type="search"]::-webkit-search-cancel-button {
+    -webkit-appearance: none;
+}
