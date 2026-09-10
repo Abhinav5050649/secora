@@ -5,9 +5,14 @@ import { userTable } from "./UserModel";
 /**
  * Permission level a user holds within one specific organization. Lives on
  * the membership (this table), not on `user`, since the same person can be
- * a `viewer` in one organization and an `admin` in another.
+ * a `viewer` in one organization and an `admin` in another. Ranked
+ * viewer < editor < admin < owner - see `ROLE_RANK` in
+ * `src/middleware/authorize.ts`. `owner` is assigned automatically to
+ * whoever creates the organization (see `OrganizationController.post`) and
+ * sits above `admin` with one distinction: only an `owner` can remove or
+ * demote an `admin`.
  */
-export const organizationUserRoleEnum = pgEnum("organization_user_role", ["viewer", "editor", "admin"]);
+export const organizationUserRoleEnum = pgEnum("organization_user_role", ["viewer", "editor", "admin", "owner"]);
 
 /** TS union type for a membership's `role` column. */
 export type OrganizationUserRole = (typeof organizationUserRoleEnum.enumValues)[number];

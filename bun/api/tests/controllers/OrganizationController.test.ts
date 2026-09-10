@@ -20,7 +20,7 @@ describe("OrganizationController", () => {
         } as unknown as OrganizationService;
 
         organizationUserService = {
-            create: mock(async () => ({ id: "member-1", organization_id: organization.id, user_id: "user-1", role: "admin" })),
+            create: mock(async () => ({ id: "member-1", organization_id: organization.id, user_id: "user-1", role: "owner" })),
         } as unknown as OrganizationUserService;
 
         controller = new OrganizationController(organizationService, organizationUserService);
@@ -37,12 +37,12 @@ describe("OrganizationController", () => {
     });
 
     describe("post", () => {
-        it("creates the organization and makes the caller its first admin", async () => {
+        it("creates the organization and makes the caller its owner", async () => {
             const ctx = createMockContext({ body: { name: "Acme" }, variables: { userId: "user-1" } });
             const result: any = await controller.post(ctx);
 
             expect(organizationService.create).toHaveBeenCalledWith({ name: "Acme" });
-            expect(organizationUserService.create).toHaveBeenCalledWith({ organization_id: "org-1", user_id: "user-1", role: "admin" });
+            expect(organizationUserService.create).toHaveBeenCalledWith({ organization_id: "org-1", user_id: "user-1", role: "owner" });
             expect(result.status).toBe(201);
             expect(result.body).toEqual(organization);
         });

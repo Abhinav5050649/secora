@@ -10,7 +10,9 @@ import { Button } from "@/components/base/buttons/button";
 import { ButtonUtility } from "@/components/base/buttons/button-utility";
 import { NativeSelect } from "@/components/base/select/select-native";
 import { usePaginationParams } from "@/hooks/usePaginationParams";
+import { useCurrentOrgRole, ROLE_RANK } from "@/hooks/useCurrentOrgRole";
 import { useAppDispatch, useAppSelector } from "@/lib/redux/hooks";
+import { useGetMeQuery } from "@/features/session";
 import {
   useGetMembersQuery,
   useUpdateMemberMutation,
@@ -21,10 +23,11 @@ import {
 } from "@/features/membership";
 import type { OrganizationUserRole } from "@/types/resources";
 
-const ROLE_OPTIONS = [
+const ALL_ROLE_OPTIONS = [
   { label: "Viewer", value: "viewer" },
   { label: "Editor", value: "editor" },
   { label: "Admin", value: "admin" },
+  { label: "Owner", value: "owner" },
 ];
 
 export default function MembersPage({ params }: { params: Promise<{ orgId: string }> }) {
@@ -35,6 +38,18 @@ export default function MembersPage({ params }: { params: Promise<{ orgId: strin
   const { data: members, isLoading, error } = useGetMembersQuery({ organizationId: orgId, limit, offset });
   const [updateMember] = useUpdateMemberMutation();
   const [removeMember, { isLoading: isRemoving }] = useRemoveMemberMutation();
+  const { data: me } = useGetMeQuery();
+  const { role: currentRole } = useCurrentOrgRole();
+  // Mirrors the backend's `update` rule: nobody can change their own role,
+  // and only an owner can change another owner's role - any admin+ can
+  // freely change everyone else's (including another admin's).
+  const canChangeRole = (m: { user_id: string; role: OrganizationUserRole }) => m.user_id !== me?.id && (m.role !== "owner" || currentRole === "owner");
+  // And a role can never be assigned above the caller's own rank.
+  const roleOptionsFor = (m: { user_id: string; role: OrganizationUserRole }) =>
+    canChangeRole(m) ? ALL_ROLE_OPTIONS.filter((option) => !currentRole || ROLE_RANK[option.value as OrganizationUserRole] <= ROLE_RANK[currentRole]) : ALL_ROLE_OPTIONS;
+  // Mirrors the backend's `delete` rule: a caller may only remove a member
+  // ranked strictly below them, which also rules out removing themselves.
+  const canRemove = (m: { user_id: string; role: OrganizationUserRole }) => m.user_id !== me?.id && (!currentRole || ROLE_RANK[currentRole] > ROLE_RANK[m.role]);
 
   const target = dialog?.type === "delete" ? members?.find((m) => m.user_id === dialog.id) : undefined;
 
@@ -62,8 +77,9 @@ export default function MembersPage({ params }: { params: Promise<{ orgId: strin
                 <NativeSelect
                   size="sm"
                   className="w-32"
-                  options={ROLE_OPTIONS}
+                  options={roleOptionsFor(m)}
                   value={m.role}
+                  disabled={!canChangeRole(m)}
                   onChange={(e) =>
                     updateMember({ organizationId: orgId, userId: m.user_id, role: e.target.value as OrganizationUserRole })
                   }
@@ -74,11 +90,12 @@ export default function MembersPage({ params }: { params: Promise<{ orgId: strin
           {
             header: "",
             align: "right",
-            render: (m) => (
-              <RequireRole atLeast="admin">
-                <ButtonUtility icon={Trash01} size="sm" color="tertiary" tooltip="Remove" onClick={() => dispatch(membershipDeleteDialogOpened(m.user_id))} />
-              </RequireRole>
-            ),
+            render: (m) =>
+              canRemove(m) && (
+                <RequireRole atLeast="admin">
+                  <ButtonUtility icon={Trash01} size="sm" color="tertiary" tooltip="Remove" onClick={() => dispatch(membershipDeleteDialogOpened(m.user_id))} />
+                </RequireRole>
+              ),
           },
         ]}
       />

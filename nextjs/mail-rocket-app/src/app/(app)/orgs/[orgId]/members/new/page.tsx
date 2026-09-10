@@ -10,25 +10,31 @@ import { NativeSelect } from "@/components/base/select/select-native";
 import { Button } from "@/components/base/buttons/button";
 import { getApiErrorMessage } from "@/lib/redux/api/errors";
 import { useCreateMemberMutation } from "@/features/membership";
+import { useCurrentOrgRole, ROLE_RANK } from "@/hooks/useCurrentOrgRole";
 
 const memberSchema = z.object({
   email: z.string().min(1, "Email is required").email("Enter a valid email"),
   first_name: z.string().optional(),
   last_name: z.string().optional(),
-  role: z.enum(["viewer", "editor", "admin"]),
+  role: z.enum(["viewer", "editor", "admin", "owner"]),
 });
 type MemberFormValues = z.infer<typeof memberSchema>;
 
-const ROLE_OPTIONS = [
+const ALL_ROLE_OPTIONS = [
   { label: "Viewer", value: "viewer" },
   { label: "Editor", value: "editor" },
   { label: "Admin", value: "admin" },
+  { label: "Owner", value: "owner" },
 ];
 
 export default function NewMemberPage({ params }: { params: Promise<{ orgId: string }> }) {
   const { orgId } = use(params);
   const router = useRouter();
   const [createMember, { isLoading, error }] = useCreateMemberMutation();
+  const { role: currentRole } = useCurrentOrgRole();
+  // The backend rejects assigning a role ranked above the caller's own - only
+  // offer roles a member can actually grant, so the request can't 403.
+  const ROLE_OPTIONS = ALL_ROLE_OPTIONS.filter((option) => !currentRole || ROLE_RANK[option.value as keyof typeof ROLE_RANK] <= ROLE_RANK[currentRole]);
 
   const {
     control,

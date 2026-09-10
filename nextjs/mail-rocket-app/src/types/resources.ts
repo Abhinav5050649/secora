@@ -24,7 +24,7 @@ export interface Organization extends BaseFields {
   normalized_name: string | null;
 }
 
-export type OrganizationUserRole = "viewer" | "editor" | "admin";
+export type OrganizationUserRole = "viewer" | "editor" | "admin" | "owner";
 
 /** Shape returned by GET /organizations/:id/users (membership + denormalized user fields). */
 export interface OrganizationMembership {
