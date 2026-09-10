@@ -10,18 +10,19 @@ const organizationUserService = new OrganizationUserService();
 const organizationController = new OrganizationController(organizationService, organizationUserService);
 
 /**
- * Routes for the `/organizations` resource. Only an `admin` may create/
- * update/delete a specific organization; `GET /` (listing every
- * organization) and `POST /` (creating one) have no `:organization_id` to
- * check a role against, so they only require the caller to be
- * authenticated - see `OrganizationController.post` for how a newly
- * created organization gets its first admin.
+ * Routes for the `/organizations` resource. Only an `admin` (or the
+ * `owner`, who outranks `admin`) may create/update/delete a specific
+ * organization; `GET /` (listing every organization) and `POST /`
+ * (creating one) have no `:organization_id` to check a role against, so
+ * they only require the caller to be authenticated - see
+ * `OrganizationController.post` for how a newly created organization gets
+ * its `owner`.
  *
  * - GET    /     - list organizations.
- * - POST   /     - create an organization (caller becomes its admin).
+ * - POST   /     - create an organization (caller becomes its owner).
  * - GET    /:organization_id - fetch a single organization (any member).
- * - PATCH  /:organization_id - partially update an organization (admin only).
- * - DELETE /:organization_id - delete an organization (admin only).
+ * - PATCH  /:organization_id - partially update an organization (admin+).
+ * - DELETE /:organization_id - delete an organization (admin+).
  */
 export const organizationRoute = new Hono()
     .get('/', organizationController.getAll)

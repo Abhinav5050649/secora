@@ -14,12 +14,16 @@ const organizationUserController = new OrganizationUserController(userService, o
  * organization's membership list. A user can belong to multiple
  * organizations, each with its own role, via the `organization_user` join
  * table. Membership management is organization-related, so only an `admin`
- * may add, change, or remove members - any member may list them.
+ * (or the `owner`, who outranks `admin`) may add, change, or remove members -
+ * any member may list them. `requireRole('admin')` here is only the coarse
+ * gate; `OrganizationUserController` layers finer-grained rank checks on top
+ * (no self-role-changes, and a caller can only touch members ranked strictly
+ * below them - see that file for details).
  *
  * - GET    /           - list the organization's members, each with their role (any member).
- * - POST   /           - create a new user and add them as a member in one step (admin only).
- * - PATCH  /:user_id   - update a member's role (or membership metadata) (admin only).
- * - DELETE /:user_id   - remove a member from the organization (their account is untouched) (admin only).
+ * - POST   /           - create a new user and add them as a member in one step (admin+).
+ * - PATCH  /:user_id   - update a member's role (or membership metadata) (admin+).
+ * - DELETE /:user_id   - remove a member from the organization (their account is untouched) (admin+).
  */
 export const organizationUserRoute = new Hono()
     .get('/', requireRole('viewer'), organizationUserController.getAll)

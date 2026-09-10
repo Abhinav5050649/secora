@@ -647,7 +647,7 @@
       "post": {
         "summary": "Create Member",
         "deprecated": false,
-        "description": "Creates a new user and adds them to the organization in one step.",
+        "description": "Creates a new user and adds them to the organization in one step. A caller can't assign a role ranked above their own (viewer < editor < admin < owner).",
         "tags": [
           "Users"
         ],
@@ -3678,7 +3678,7 @@
       "patch": {
         "summary": "Update Member",
         "deprecated": false,
-        "description": "Updates a member's role (or membership metadata) within the organization. Does not touch the user's own profile fields - see `PATCH /users/{id}` for that.",
+        "description": "Updates a member's role (or membership metadata) within the organization. Does not touch the user's own profile fields - see `PATCH /users/{id}` for that. A caller can't change their own role, can't change another owner's role unless they're an owner too, and can't assign a role ranked above their own (viewer < editor < admin < owner).",
         "tags": [
           "Users"
         ],
@@ -3762,7 +3762,7 @@
       "delete": {
         "summary": "Remove Member",
         "deprecated": false,
-        "description": "Removes a user from the organization by deleting their membership row. The user's account itself is untouched - see `DELETE /users/{id}` to delete the account entirely.",
+        "description": "Removes a user from the organization by deleting their membership row. The user's account itself is untouched - see `DELETE /users/{id}` to delete the account entirely. A caller can only remove a member ranked strictly below them (viewer < editor < admin < owner), which also rules out removing themselves.",
         "tags": [
           "Users"
         ],
@@ -4774,7 +4774,8 @@
             "enum": [
               "viewer",
               "editor",
-              "admin"
+              "admin",
+              "owner"
             ],
             "description": "Permission level the user holds within this specific organization."
           },
@@ -4800,7 +4801,8 @@
             "enum": [
               "viewer",
               "editor",
-              "admin"
+              "admin",
+              "owner"
             ],
             "description": "Permission level to grant the user within the organization."
           },
@@ -4852,7 +4854,8 @@
             "enum": [
               "viewer",
               "editor",
-              "admin"
+              "admin",
+              "owner"
             ],
             "description": "Permission level of the user within this organization."
           },
@@ -4895,7 +4898,8 @@
             "enum": [
               "viewer",
               "editor",
-              "admin"
+              "admin",
+              "owner"
             ],
             "description": "Permission level the user holds within this organization."
           },

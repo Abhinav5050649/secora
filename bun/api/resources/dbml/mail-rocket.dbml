@@ -14,6 +14,7 @@ Enum organization_user_role {
   viewer
   editor
   admin
+  owner
 }
 
 Enum identity_type {

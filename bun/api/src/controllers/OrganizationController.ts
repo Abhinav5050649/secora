@@ -6,12 +6,12 @@ import { OrganizationService, OrganizationUserService } from "../services";
 /**
  * HTTP layer for organization-related endpoints. Translates Hono `Context`
  * objects into `OrganizationService` calls and maps the results to HTTP
- * responses/errors. Only an `admin` may write to these endpoints (enforced
- * by `requireRole('admin')` in `OrganizationRoute`), except `POST /` itself -
- * there's no organization yet to hold a role in, so creating one just
- * requires being authenticated; the creator is then made that org's first
- * `admin` automatically (see `post` below), which is what lets them manage
- * it afterwards.
+ * responses/errors. Only an `admin` (or the `owner`, who outranks `admin`)
+ * may write to these endpoints (enforced by `requireRole('admin')` in
+ * `OrganizationRoute`), except `POST /` itself - there's no organization yet
+ * to hold a role in, so creating one just requires being authenticated; the
+ * creator is then made that org's `owner` automatically (see `post` below),
+ * which is what lets them manage it afterwards.
  */
 export class OrganizationController {
     constructor(private organizationService: OrganizationService, private organizationUserService: OrganizationUserService) {
@@ -47,9 +47,12 @@ export class OrganizationController {
     /**
      * POST /organizations
      * Creates a new organization and makes the authenticated caller its
-     * first `admin` member - without this, a freshly created organization
-     * would have nobody able to manage it (every write to `/organizations`
-     * and `/organizations/:organization_id/users` requires `admin`).
+     * `owner` - without this, a freshly created organization would have
+     * nobody able to manage it (every write to `/organizations` and
+     * `/organizations/:organization_id/users` requires at least `admin`).
+     * `owner` (rather than `admin`) so the creator is never at risk of being
+     * removed or demoted by another `admin` later on - see
+     * `OrganizationUserController` for that enforcement.
      *
      * @param c - Hono request context; expects a JSON body with the
      * organization fields.
@@ -64,7 +67,7 @@ export class OrganizationController {
         logger.debug({ body, userId }, `Request:`);
 
         const organization = await this.organizationService.create(body);
-        await this.organizationUserService.create({ organization_id: organization.id, user_id: userId, role: "admin" });
+        await this.organizationUserService.create({ organization_id: organization.id, user_id: userId, role: "owner" });
 
         logger.debug({ organization }, `Response:`);
         logger.info(`End method: ${this.constructor.name}.${this.post.name}`);

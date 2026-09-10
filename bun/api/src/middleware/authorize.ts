@@ -8,13 +8,18 @@ const organizationUserService = new OrganizationUserService();
 
 /**
  * Rank order for `organization_user.role`. Higher ranks include every
- * permission of the ranks below them, so an `editor`/`admin` automatically
- * satisfies a `viewer` requirement, and `admin` also satisfies `editor`.
+ * permission of the ranks below them, so an `editor`/`admin`/`owner`
+ * automatically satisfies a `viewer` requirement, and `admin`/`owner` also
+ * satisfies `editor`. Exported so controllers can reuse it for finer-grained
+ * checks `requireRole` can't express on its own (e.g. "can this member
+ * modify that one" - see `OrganizationUserController`), instead of each
+ * keeping its own copy of the hierarchy.
  */
-const ROLE_RANK: Record<OrganizationUserRole, number> = {
+export const ROLE_RANK: Record<OrganizationUserRole, number> = {
     viewer: 1,
     editor: 2,
     admin: 3,
+    owner: 4,
 };
 
 /**

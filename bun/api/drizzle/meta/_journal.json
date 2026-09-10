@@ -85,6 +85,13 @@
       "when": 1787500104439,
       "tag": "0011_premium_sasquatch",
       "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1789064047483,
+      "tag": "0012_careful_bastion",
+      "breakpoints": true
     }
   ]
 }
